@@ -1,0 +1,463 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); 
+    --hover-gradient: linear-gradient(135deg, #FF8E53 0%, #FF6B6B 100%);
+    --bg-color: #fff5f2; 
+    --white: #ffffff;
+    --shadow: 0 8px 20px rgba(255, 107, 107, 0.2);
+    --border-radius: 15px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Quicksand', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Login / Register Box*/
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-box {
+    background: var(--white);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+h1, h2, h3 {
+    color: #FF6B6B; 
+    margin-bottom: 20px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border: 2px solid #ffe0d6;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: 0.3s;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: #FF6B6B;
+}
+
+.btn {
+    display: inline-block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+    background: var(--primary-gradient);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.btn:hover {
+    background: var(--hover-gradient);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+}
+
+.btn-secondary {
+    background: #999;
+    width: auto;
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+/*Link*/
+.links {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.links a {
+    color: #FF6B6B;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.links a:hover {
+    text-decoration: underline;
+}
+
+/*Dashboard Styles (Giảng viên/Admin)*/
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 2px solid #ffe0d6;
+    margin-bottom: 30px;
+}
+
+.dashboard-content {
+    display: flex;
+    gap: 30px;
+}
+
+.card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    flex: 1;
+}
+
+/*Table*/
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #fff5f2;
+    color: #FF6B6B;
+}
+
+.alert {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+.alert-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+.alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.alert-warning { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    .dashboard-content {
+        flex-direction: column;
+    }
+}
+@media (max-width: 768px) {
+    .schedule-table { font-size: 10px; }
+    .class-block { padding: 5px; }
+    .dashboard-content { flex-direction: column; }
+}
+/* --- Admin Dashboard Stats --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    padding: 20px;
+    border-radius: 15px; 
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.05); 
+    background-color: #ffb7b2; 
+    color: #4a4a4a; 
+}
+
+.stat-card:hover { transform: translateY(-5px); }
+
+.stat-card h3 {
+    font-size: 36px;
+    margin: 10px 0;
+    font-weight: 800;
+    color: #2d3436; 
+}
+
+.stat-card p { margin: 0; font-weight: 600; }
+.stat-card.blue { background-color: #a2d2ff; }
+.stat-card.green { background-color: #b5ead7; }
+.stat-card.orange { background-color: #ffdac1; }
+
+
+.stat-card h3 { color: #333; font-weight: 800; }
+.stat-card h3 { font-size: 36px; margin: 10px 0; }
+.stat-card p { opacity: 0.9; margin: 0; }
+
+/* --- Tabs System --- */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 16px;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.tab:hover { background-color: #f8f9fa; }
+
+.tab.active {
+    color: #FF6B6B;
+    border-bottom: 3px solid #FF6B6B;
+    font-weight: bold;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* --- Badges --- */
+.badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.badge-success { background: #d4edda; color: #155724; }
+.badge-danger { background: #f8d7da; color: #721c24; }
+.badge-warning { background: #fff3cd; color: #856404; }
+.badge-info { background: #d1ecf1; color: #0c5460; }
+
+/* --- Logs Table --- */
+.log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.log-table th, .log-table td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+.log-table th { color: #666; font-weight: 600; }
+.ip-col { color: #666; font-family: monospace; }
+
+/* Bộ lọc Audit*/
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+    cursor: pointer;
+    font-size: 14px;
+    margin: 0; 
+}
+
+.filter-item input[type="radio"] {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0;
+    height: 16px;
+    width: 16px;
+    cursor: pointer;
+    border: none; 
+}
+
+/* --- Modal Styles chi tiết lớp học --- */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0,0,0,0.5); 
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto; 
+    padding: 25px;
+    border-radius: 12px;
+    width: 60%; 
+    max-width: 800px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: slideDown 0.3s ease-out;
+    position: relative;
+}
+
+@keyframes slideDown {
+    from {top: -50px; opacity: 0;}
+    to {top: 0; opacity: 1;}
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    line-height: 1;
+}
+
+.close:hover,
+.close:focus {
+    color: #FF6B6B;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/*Class Block Interactivity */
+.class-block {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.class-block:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2); 
+    border-left-width: 5px !important; 
+}
+
+/*Search & Filter Input */
+#searchInput, #statusFilter {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+#searchInput:focus, #statusFilter:focus {
+    border-color: #FF6B6B;
+    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.1);
+}
+
+/* Responsive*/
+@media (max-width: 768px) {
+    .modal-content {
+        width: 90%;
+        margin: 10% auto;
+    }
+}
+
+.qr-modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 2000; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0,0,0,0.7); 
+}
+.qr-modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.qr-close {
+    color: #aaa;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+.qr-close:hover { color: #FF6B6B; }
+
+/* Nút lọc của admin*/
+.filter-bar {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    gap: 15px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.filter-icon {
+    color: #FF6B6B;
+    font-size: 14px;
+}
+
+.modern-select, .modern-input {
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.3s;
+    background-color: #fafafa;
+    color: #333;
+}
+
+.modern-select { min-width: 150px; cursor: pointer; }
+.modern-input { min-width: 200px; }
+
+.modern-select:focus, .modern-input:focus {
+    border-color: #FF6B6B;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.filter-label { font-weight: 600; color: #555; font-size: 14px; margin-right: 5px; }

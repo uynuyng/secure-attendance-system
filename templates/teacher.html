@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Giảng viên Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-chalkboard-teacher"></i> GV: {{ session['name'] }}</h2>
+            <a href="/logout" class="btn btn-secondary">Đăng xuất</a>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for cat, msg in messages %}
+                    <div class="alert alert-{{ cat }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="dashboard-content">
+            <div class="card" style="flex: 1;">
+                <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size: 18px; margin: 0;"><i class="fas fa-list-ul"></i> Danh Sách Điểm Danh</h3>
+                    <a href="/export_excel" class="btn btn-secondary" style="font-size: 12px; padding: 5px 10px; width: auto; margin: 0;">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </a>
+                </div>
+
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm tên hoặc MSSV..." 
+                           style="padding: 8px; font-size: 13px; flex: 1;">
+                    <select id="statusFilter" onchange="filterTable()" style="padding: 8px; width: 110px;">
+                        <option value="all">Tất cả</option>
+                        <option value="QR Code">QR Code</option>
+                        <option value="OTP">OTP</option>
+                    </select>
+                </div>
+
+                <div style="max-height: 450px; overflow-y: auto;">
+                    <table id="attendanceTable" style="font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th>MSSV</th> <th>Họ Tên</th> <th>Thời gian</th> <th>Phương thức</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in attendees %}
+                            <tr>
+                                <td>{{ att[0] }}</td> 
+                                <td style="font-weight: 500;">{{ att[1] }}</td> 
+                                <td>{{ att[2].strftime('%H:%M:%S') }}</td>
+                                <td>
+                                    {% if att[3] == 'QR Code' %}
+                                        <span class="badge badge-info" style="background: #e3f2fd; color: #0d47a1;">
+                                            <i class="fas fa-qrcode"></i> QR
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-warning" style="background: #fff3e0; color: #e65100;">
+                                            <i class="fas fa-keyboard"></i> OTP
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" style="text-align:center; color: #999;">Chưa có dữ liệu.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="flex: 1.5;">
+                <h3><i class="fas fa-calendar-alt"></i> Lịch Giảng Dạy Tuần Này</h3>
+                <p style="font-size: 12px; color: #666; font-style: italic; margin-bottom: 15px;">
+                    <i class="fas fa-info-circle"></i> Bấm vào ô lớp học để xem danh sách sinh viên và tạo mã điểm danh.
+                </p>
+                <div class="schedule-container">
+                    <table class="schedule-table">
+                        <thead><tr><th style="width:40px;">Ca</th><th>T2</th><th>T3</th><th>T4</th><th>T5</th><th>T6</th><th>T7</th><th>CN</th></tr></thead>
+                        <tbody>
+                            {% for sess in ['Sáng', 'Chiều', 'Tối'] %}
+                            <tr>
+                                <td class="session-col" style="font-weight: bold; background: #f1f1f1;">{{ sess }}</td>
+                                {% for day in ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'] %}
+                                <td>
+                                    {% for s in schedules %}
+                                        {% set day_index = s[0].isoweekday() %}
+                                        {% set day_name = 'Thứ ' ~ (day_index + 1) %}
+                                        {% if day_index == 7 %}{% set day_name = 'CN' %}{% endif %}
+                                        
+                                        {% if day_name == day %}
+                                            {% set gio = s[1].split(':')[0]|int %}
+                                            {% set buoi_hoc = 'Sáng' %}
+                                            {% if gio >= 12 %}{% set buoi_hoc = 'Chiều' %}{% endif %}
+                                            {% if gio >= 17 %}{% set buoi_hoc = 'Tối' %}{% endif %}
+
+                                            {% if buoi_hoc == sess %}
+                                            <div class="class-block" onclick="showTeacherClassModal('{{ s[6] }}')" 
+                                                 style="background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 8px; font-size: 12px; cursor: pointer;">
+                                                <strong style="color: #0d47a1; display: block; margin-bottom: 3px;">{{ s[4] }}</strong>
+                                                <div style="color: #555;"><i class="far fa-clock"></i> {{ s[1] }} - {{ s[2] }}</div>
+                                                <div style="color: #555;"><i class="fas fa-map-marker-alt"></i> {{ s[3] }}</div>
+                                            </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chi tiết lớp học (Teacher) -->
+    <div id="classDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClassModal()">&times;</span>
+            <h2 id="modalSubject" style="color: #FF6B6B; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0;"></h2>
+            
+            <div style="display: flex; gap: 30px; margin-bottom: 20px; font-size: 15px; color: #444;">
+                <div><i class="fas fa-clock" style="color: #2196f3;"></i> <span id="modalTime" style="font-weight: bold;"></span></div>
+                <div><i class="fas fa-calendar-alt" style="color: #ff9800;"></i> <span id="modalDate" style="font-weight: bold;"></span></div>
+                <div><i class="fas fa-map-marker-alt" style="color: #4caf50;"></i> <span id="modalRoom" style="font-weight: bold;"></span></div>
+            </div>
+
+            <!-- Nút tạo mã điểm danh -->
+            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #fff3e0; border-radius: 10px;">
+                <button onclick="generateCodeForClass()" class="btn" style="width: auto; padding: 10px 30px;">
+                    <i class="fas fa-magic"></i> Tạo Mã Điểm Danh
+                </button>
+                <div id="codeDisplay" style="display: none; margin-top: 15px;">
+                    <div style="font-weight: bold; color: #555; margin-bottom: 10px;">
+                        OTP: <span id="otpCode" style="color:#FF6B6B; font-size: 28px; letter-spacing: 3px;"></span>
+                    </div>
+                    <img id="qrImage" src="" style="width: 200px; border: 3px dashed #FF6B6B; border-radius: 10px;">
+                </div>
+            </div>
+            
+            <h4 style="margin-bottom: 10px;"><i class="fas fa-users"></i> Danh sách sinh viên:</h4>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <thead>
+                        <tr style="background: #343a40; color: white;">
+                            <th style="padding: 10px;">MSSV</th> 
+                            <th style="padding: 10px;">Họ Tên</th> 
+                            <th style="padding: 10px;">Trạng Thái</th> 
+                            <th style="padding: 10px;">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalStudentList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScheduleId = null;
+
+        // Hiển thị modal chi tiết lớp (Teacher)
+        function showTeacherClassModal(scheduleId) {
+            currentScheduleId = scheduleId;
+            var modal = document.getElementById("classDetailModal");
+            var tbody = document.getElementById("modalStudentList");
+            
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</td></tr>';
+            modal.style.display = "block";
+            
+            // Reset code display
+            document.getElementById('codeDisplay').style.display = 'none';
+
+            fetch('/api/class_details/' + scheduleId)
+                .then(response => {
+                    if (!response.ok){
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        alert('Lỗi: ' + data.error);
+                        closeClassModal();
+                        return;
+                    }
+
+                    document.getElementById("modalSubject").innerText = data.subject;
+                    document.getElementById("modalTime").innerText = data.time;
+                    document.getElementById("modalDate").innerText = data.date;
+                    document.getElementById("modalRoom").innerText = data.room;
+
+                    // Hiển thị OTP nếu đã có
+                    if (data.otp) {
+                        document.getElementById('otpCode').innerText = data.otp;
+                        document.getElementById('codeDisplay').style.display = 'block';
+                    }
+
+                    tbody.innerHTML = "";
+                    if (data.students.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Chưa có sinh viên đăng ký.</td></tr>';
+                    } else {
+                        data.students.forEach(s => {
+                            var statusBadge = s.status === 'Co Mat' 
+                                ? '<span class="badge badge-success" style="background:#d4edda; color:green;">✓ Có mặt</span>' 
+                                : '<span class="badge badge-danger" style="background:#f8d7da; color:red;">✗ Vắng</span>';
+                            
+                            var row = `<tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px;">${s.mssv}</td>
+                                <td style="padding: 10px; font-weight: bold;">${s.ten}</td>
+                                <td style="padding: 10px;">${statusBadge}</td>
+                                <td style="padding: 10px; font-size: 12px; color: #666;">
+                                    ${s.method}<br>
+                                    <i class="fas fa-clock"></i> ${s.time_full}
+                                </td>
+                            </tr>`;
+                            tbody.innerHTML += row;
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Lỗi tải dữ liệu!</td></tr>';
+                });
+        }
+
+        // Tạo mã điểm danh cho tiết học hiện tại
+        function generateCodeForClass() {
+            if (!currentScheduleId) {
+                alert('Lỗi: Không xác định được tiết học!');
+                return;
+            }
+            fetch('/teacher/generate_code/' + currentScheduleId, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Lỗi: ' + data.error);
+                    return;
+                }
+                // Hiển thị OTP và QR
+                document.getElementById('otpCode').innerText = data.otp;
+                document.getElementById('qrImage').src = 'data:image/png;base64,' + data.qr_image;
+                document.getElementById('codeDisplay').style.display = 'block';
+            })
+            .catch(err => {
+                console.error('Fetch error:',err);
+                alert('Lỗi kết nối server!');
+            });
+        }
+
+        function closeClassModal() {
+            document.getElementById("classDetailModal").style.display = "none";
+            currentScheduleId = null;
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById("classDetailModal");
+            if (event.target == modal) {
+                closeClassModal();
+            }
+        }
+
+        // Filter table
+        function filterTable() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toUpperCase();
+            var statusFilter = document.getElementById("statusFilter").value;
+            var table = document.getElementById("attendanceTable");
+            var tr = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < tr.length; i++) {
+                var tdName = tr[i].getElementsByTagName("td")[1];
+                var tdMssv = tr[i].getElementsByTagName("td")[0];
+                var tdMethod = tr[i].getElementsByTagName("td")[3];
+
+                if (tdName && tdMssv) {
+                    var txtValueName = tdName.textContent || tdName.innerText;
+                    var txtValueMssv = tdMssv.textContent || tdMssv.innerText;
+                    var methodText = tdMethod.textContent || tdMethod.innerText;
+
+                    var matchSearch = (txtValueName.toUpperCase().indexOf(filter) > -1) || (txtValueMssv.toUpperCase().indexOf(filter) > -1);
+                    var matchStatus = (statusFilter === 'all') || (methodText.includes(statusFilter));
+
+                    if (matchSearch && matchStatus) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

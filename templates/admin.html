@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-shield"></i>ADMIN - Quản trị hệ thống</h1>
+            <a href="/logout" class="btn btn-secondary">Đăng xuất</a>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for cat, msg in messages %}
+                    <div class="alert alert-{{ cat }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <i class="fas fa-user-graduate" style="font-size: 24px;"></i>
+                <h3>{{ stats[0] }}</h3>
+                <p>Sinh viên</p>
+            </div>
+            <div class="stat-card green">
+                <i class="fas fa-chalkboard-teacher" style="font-size: 24px;"></i>
+                <h3>{{ stats[1] }}</h3>
+                <p>Giảng viên</p>
+            </div>
+            <div class="stat-card orange">
+                <i class="fas fa-clipboard-check" style="font-size: 24px;"></i>
+                <h3>{{ stats[2] }}</h3>
+                <p>Điểm danh hôm nay</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-history" style="font-size: 24px;"></i>
+                <h3>{{ stats[3] }}</h3>
+                <p>Hoạt động hôm nay</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <div style="flex: 1.15;">
+                {% if pending_users %}
+                <div class="card" style="margin-bottom: 20px; border: 2px solid #ff9f43; background: #fffaf0;">
+                    <h3 style="color: #d35400; font-size: 18px;">
+                        <i class="fas fa-user-clock"></i> Yêu cầu đăng ký chờ duyệt ({{ pending_users|length }})
+                    </h3>
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <table style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th>Họ Tên / Thời gian</th>
+                                    <th>Email</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in pending_users %}
+                                <tr>
+                                    <td>
+                                        <b>{{ req[1] }}</b><br>
+                                        <small style="color:#666"><i class="far fa-clock"></i> {{ req[3].strftime('%d/%m %H:%M') }}</small>
+                                    </td>
+                                    <td>{{ req[2] }}</td>
+                                    <td style="white-space: nowrap; text-align: center;">
+                                        <a href="/admin/approve/{{ req[0] }}" class="btn" style="width:auto; padding:5px 10px; font-size:11px; background:#2ecc71; display:inline-block; margin-right:5px; margin-top:0;">
+                                            <i class="fas fa-check"></i> Duyệt
+                                        </a>
+                                        <a href="/admin/reject/{{ req[0] }}" class="btn" style="width:auto; padding:5px 10px; font-size:11px; background:#e74c3c; display:inline-block; margin-top:0;" onclick="return confirm('Từ chối yêu cầu này?');">
+                                            <i class="fas fa-times"></i> Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="card" style="margin-bottom: 20px; border: 2px solid #FF6B6B;">
+                    <h3><i class="fas fa-plus-circle"></i> Tạo tài khoản mới</h3>
+                    <form action="/admin/create_user" method="POST" autocomplete="off">
+                        <div style="display: flex; gap: 10px;">
+                            <select name="role" style="flex:1;">
+                                <option value="student">Sinh viên</option>
+                                <option value="teacher">Giảng viên</option>
+                            </select>
+                            </div>
+                        <input type="text" name="fullname" placeholder="Họ tên" required>
+                        <input type="email" name="email" placeholder="Email (Bắt buộc để nhận tài khoản)" required>
+                        
+                        <div style="margin-top: 5px; font-size: 13px; color: #666;">
+                            <i class="fas fa-info-circle"></i> Username tự động. Pass mặc định: 123.
+                        </div>
+                    
+                        <button class="btn" style="margin-top:10px; background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+                            <i class="fas fa-plus"></i> Tạo tài khoản
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card" style="margin-bottom: 20px; border: 2px solid #4834d4;">
+                    <h3><i class="fas fa-user-plus"></i> Xếp lớp cho Sinh viên</h3>
+                    <form action="/admin/assign_class" method="POST">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" name="mssv" placeholder="Nhập MSSV (VD: SV005)" required style="flex: 1;">
+                            <input type="text" name="class_code" placeholder="Mã lớp (VD: L01_SEC)" required style="flex: 1;">
+                        </div>
+                        
+                        <div style="font-size: 11px; color: #666; margin-bottom: 10px; font-style: italic;">
+                            * Mã lớp gợi ý: L01_SEC (ATTT), L07_JAV (Java), L02_DBI (Oracle), L03_PY (Python)...
+                        </div>
+                
+                        <button class="btn" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);">
+                            <i class="fas fa-check"></i> Thêm vào lớp
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-users"></i> Danh sách người dùng ({{ all_users|length }})</h3>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên đăng nhập</th>
+                                    <th>Họ tên</th>
+                                    <th>Vai trò</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in all_users %}
+                                <tr>
+                                    <td>{{ user.ma_nguoi_dung }}</td>
+                                    <td><strong>{{ user.ten_dang_nhap }}</strong></td>
+                                    <td>{{ user.ho_ten }}</td>
+                                    <td>
+                                        {% if user.ma_vai_tro == 1 %}
+                                            <span class="badge badge-danger">Admin</span>
+                                        {% elif user.ma_vai_tro == 2 %}
+                                            <span class="badge badge-info">Giảng viên</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Sinh viên</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        {% if user.ma_vai_tro != 1 %} <form action="/admin/delete_user/{{ user.ma_nguoi_dung }}" method="POST" onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa user {{ user.ten_dang_nhap }}? \nTất cả lịch sử điểm danh và dữ liệu liên quan sẽ bị xóa vĩnh viễn!');">
+                                            <button class="btn" style="background: #ff4d4d; padding: 5px 10px; margin: 0; font-size: 12px; width: auto;">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span style="color: #ccc; font-size: 12px;">Locked</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="flex: 1.5;">
+                <h3><i class="fas fa-history"></i> Nhật ký hệ thống</h3>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('audit')"><i class="fas fa-shield-alt"></i> App Audit</button>
+                    <button class="tab" onclick="switchTab('db_trigger')"><i class="fas fa-database"></i> DB Trigger</button>
+                    <button class="tab" onclick="switchTab('attendance')"><i class="fas fa-clipboard-check"></i> Điểm danh</button>
+                    <button class="tab" onclick="switchTab('backup')"><i class="fas fa-database"></i> Sao lưu & Phục hồi</button>
+                </div>
+                
+                <div id="audit" class="tab-content active">
+                    <div class="filter-bar">
+                        <span class="filter-label">Lọc theo:</span>
+                        
+                        <div class="filter-group">
+                            <i class="fas fa-info-circle filter-icon"></i>
+                            <select id="audit_status" onchange="filterAudit()" class="modern-select">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="Thành công">Thành công</option>
+                                <option value="Thất bại">Thất bại</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group" style="flex: 1;">
+                            <i class="fas fa-search filter-icon"></i>
+                            <input type="text" id="audit_search" onkeyup="filterAudit()" placeholder="Tìm User, Hành động..." class="modern-input" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <table class="log-table" id="table_audit"> <thead><tr><th>Thời gian</th><th>User</th><th>Hành động</th><th>Chi tiết</th><th>IP</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                {% for log in audit_logs %}
+                                <tr>
+                                    <td style="white-space:nowrap;">{{ log[0].strftime('%H:%M:%S') }}</td>
+                                    <td><strong>{{ log[1] or 'System' }}</strong></td>
+                                    <td>{{ log[3] }}</td>
+                                    <td style="font-size:12px; color:#666;">{{ log[4] or '-' }}</td>
+                                    <td class="ip-col">{{ log[5] }}</td>
+                                    <td><span class="badge {{ 'badge-success' if log[6]=='Thành công' else 'badge-danger' }}">{{ log[6] }}</span></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" style="text-align:center;">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="db_trigger" class="tab-content">
+                    <div class="filter-bar">
+                        <span class="filter-label">Loại hành động:</span>
+                        <div class="filter-group">
+                            <i class="fas fa-database filter-icon"></i>
+                            <select id="trigger_action" onchange="filterTrigger()" class="modern-select">
+                                <option value="all">Tất cả</option>
+                                <option value="INSERT">INSERT (Thêm)</option>
+                                <option value="UPDATE">UPDATE (Sửa)</option>
+                                <option value="DELETE">DELETE (Xóa)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <table class="log-table" id="table_trigger" style="font-size: 12px;"> <thead><tr style="background: #343a40; color: white;"><th>Thời gian</th><th>DB User</th><th>Loại</th><th>Bảng</th><th>Dữ liệu cũ</th><th>Dữ liệu mới</th></tr></thead>
+                            <tbody>
+                                {% for log in trigger_logs %}
+                                <tr>
+                                    <td>{{ log[2].strftime('%d/%m %H:%M:%S') }}</td>
+                                    <td>{{ log[1] }}</td>
+                                    <td>
+                                        {% if log[3] == 'INSERT' %}<span class="badge badge-success">INSERT</span>
+                                        {% elif log[3] == 'UPDATE' %}<span class="badge badge-warning">UPDATE</span>
+                                        {% else %}<span class="badge badge-danger">DELETE</span>{% endif %}
+                                    </td>
+                                    <td>{{ log[4] }}</td>
+                                    <td style="color:#666; font-style:italic;">{{ log[5] or '' }}</td>
+                                    <td style="font-weight:bold;">{{ log[6] or '' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" style="text-align:center;">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="attendance" class="tab-content">
+                    <div class="filter-bar">
+                        <span class="filter-label">Trạng thái điểm danh:</span>
+                        <div class="filter-group">
+                            <i class="fas fa-check-circle filter-icon"></i>
+                            <select id="att_status" onchange="filterAttendance()" class="modern-select">
+                                <option value="all">Tất cả</option>
+                                <option value="Co Mat">Có mặt</option>
+                                <option value="Vang">Vắng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <table class="log-table" id="table_attendance"> <thead><tr><th>Thời gian</th><th>Sinh viên</th><th>Phương thức</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                {% for log in attendance_logs %}
+                                <tr>
+                                    <td>{{ log[0].strftime('%H:%M - %d/%m/%Y') }}</td>
+                                    <td style="font-weight: bold; color: #FF6B6B;">{{ log[1] }}</td>
+                                    <td>
+                                        {% if log[3] == 'QR Code' %} <span class="badge badge-info"><i class="fas fa-qrcode"></i> QR</span>
+                                        {% else %} <span class="badge badge-warning"><i class="fas fa-keyboard"></i> OTP</span> {% endif %}
+                                    </td>
+                                    <td><span class="badge badge-success">✓ {{ log[2] }}</span></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" style="text-align: center;">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="backup" class="tab-content">
+                    <div style="display: flex; gap: 30px; margin-top: 20px; flex-wrap: wrap;">
+                        
+                        <div style="flex: 1; min-width: 300px; padding: 25px; background: #f0fdf4; border: 2px dashed #2ecc71; border-radius: 15px; text-align: center;">
+                            <i class="fas fa-cloud-download-alt" style="font-size: 50px; color: #2ecc71; margin-bottom: 15px;"></i>
+                            <h3 style="color: #27ae60;">Sao lưu dữ liệu</h3>
+                            <p style="font-size: 13px; color: #555; margin: 15px 0;">
+                                Tải toàn bộ dữ liệu (Người dùng, Điểm danh, Lịch sử) về máy tính dưới dạng file an toàn (.json).
+                            </p>
+                            <a href="/admin/backup" class="btn" style="background: #2ecc71; display: inline-block; width: auto; padding: 10px 20px;">
+                                <i class="fas fa-download"></i> Tải bản sao lưu ngay
+                            </a>
+                        </div>
+                
+                        <div style="flex: 1; min-width: 300px; padding: 25px; background: #fef2f2; border: 2px dashed #e74c3c; border-radius: 15px;">
+                            <div style="text-align: center;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 50px; color: #e74c3c; margin-bottom: 15px;"></i>
+                                <h3 style="color: #c0392b;">Phục hồi hệ thống</h3>
+                            </div>
+                            
+                            <div class="alert alert-warning" style="font-size: 12px; margin: 15px 0; background: #fff; border: 1px solid #e74c3c; color: #c0392b;">
+                                <i class="fas fa-exclamation-triangle"></i> <b>CẢNH BÁO NGUY HIỂM:</b><br>
+                                Hành động này sẽ <u>XÓA SẠCH</u> dữ liệu hiện tại và thay thế bằng dữ liệu trong file backup. Hãy cân nhắc kỹ!
+                            </div>
+                            
+                            <form action="/admin/restore" method="POST" enctype="multipart/form-data" 
+                                  onsubmit="return confirm('CẢNH BÁO CUỐI CÙNG:\n\nBạn có chắc chắn muốn phục hồi không?\nToàn bộ dữ liệu hiện tại sẽ bị MẤT VĨNH VIỄN!');">
+                                
+                                <label style="font-weight: bold; font-size: 13px;">Chọn file backup (.json):</label>
+                                <input type="file" name="backup_file" accept=".json" required 
+                                       style="border: 1px solid #fab1a0; padding: 10px; width: 100%; border-radius: 5px; margin: 10px 0; background: #fff;">
+                                
+                                <button class="btn" style="background: #e74c3c; width: 100%;">
+                                    <i class="fas fa-undo"></i> Tiến hành Phục hồi
+                                </button>
+                            </form>
+                        </div>
+                
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        setInterval(() => {
+            if (!document.querySelector('.modal')) {
+                console.log('Auto-refreshing logs...');
+            }
+        }, 30000);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.log-table tbody tr').forEach(row => {
+                row.addEventListener('click', function() {
+                    document.querySelectorAll('.log-table tbody tr').forEach(r => {
+                        r.style.backgroundColor = '';
+                    });
+                    this.style.backgroundColor = '#fff3cd';
+                });
+            });
+        });
+        
+        // Lọc Audit 
+        function filterAudit() {
+            var status = document.getElementById("audit_status").value.toUpperCase();
+            var search = document.getElementById("audit_search").value.toUpperCase();
+            var table = document.getElementById("table_audit");
+            var tr = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < tr.length; i++) {
+                var tds = tr[i].getElementsByTagName("td");
+                if (tds.length > 2) { 
+                    var txtUser = tds[1].textContent || tds[1].innerText;
+                    var txtAction = tds[2].textContent || tds[2].innerText;
+                    var txtStatus = tds[5].textContent || tds[5].innerText;
+
+                    var matchSearch = (txtUser.toUpperCase().indexOf(search) > -1) || (txtAction.toUpperCase().indexOf(search) > -1);
+                    var matchStatus = (status === 'ALL') || (txtStatus.toUpperCase().indexOf(status) > -1);
+                    
+                    tr[i].style.display = (matchSearch && matchStatus) ? "" : "none";
+                }
+            }
+        }
+        //Lọc Trigger
+        function filterTrigger() {
+            var action = document.getElementById("trigger_action").value.toUpperCase();
+            var table = document.getElementById("table_trigger");
+            var tr = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < tr.length; i++) {
+                var tds = tr[i].getElementsByTagName("td");
+                if (tds.length > 2) {
+                    var txtAction = tds[2].textContent || tds[2].innerText;
+                    tr[i].style.display = (action === 'ALL' || txtAction.toUpperCase().indexOf(action) > -1) ? "" : "none";
+                }
+            }
+        }
+        //Lọc Attendance
+        function filterAttendance() {
+            var status = document.getElementById("att_status").value.toUpperCase();
+            var table = document.getElementById("table_attendance");
+            var tr = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < tr.length; i++) {
+                var tds = tr[i].getElementsByTagName("td");
+                if (tds.length > 2) {
+                    var txtStatus = tds[3].textContent || tds[3].innerText;
+                    tr[i].style.display = (status === 'ALL' || txtStatus.toUpperCase().indexOf(status) > -1) ? "" : "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h2>Hệ Thống Điểm Danh</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <input type="text" name="username" placeholder="Tên đăng nhập" required>
+                <input type="password" name="password" placeholder="Mật khẩu" required>
+
+                <div style="margin: 15px 0; text-align: center;">
+                    <img src="data:image/png;base64,{{ captcha_image }}" 
+                         style="border-radius: 8px; border: 2px solid #ffe0d6; margin-bottom: 10px;">
+                    
+                    <input type="text" name="captcha" placeholder="Nhập mã hình trên" required autocomplete="off">
+                </div>
+
+                <button type="submit" class="btn">Đăng nhập</button>
+            </form>
+            
+            <div class="links">
+                <a href="/register">Đăng ký mới</a> | <a href="/forgot_password">Quên mật khẩu?</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

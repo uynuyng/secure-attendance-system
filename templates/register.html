@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Đăng ký tài khoản</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h2>Gửi Yêu Cầu Đăng Ký</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" autocomplete="off">
+                <div style="text-align: left; margin-bottom: 5px; font-weight: bold; color: #555;">Họ và tên:</div>
+                <input type="text" name="fullname" placeholder="Ví dụ: Nguyễn Văn A" required autocomplete="off">
+                
+                <div style="text-align: left; margin-bottom: 5px; font-weight: bold; color: #555;">Email nhà trường:</div>
+                <input type="email" name="email" placeholder="email@st.huit.edu.vn" required autocomplete="off">
+                
+                <div style="background: #fff3e0; padding: 15px; border-radius: 8px; font-size: 13px; color: #e65100; margin-top: 20px; text-align: left; border: 1px solid #ffe0b2;">
+                    <i class="fas fa-info-circle"></i> <b>Quy trình cấp tài khoản:</b><br>
+                    <ul style="margin-left: 15px; margin-top: 5px;">
+                        <li>Bạn không cần tạo mật khẩu.</li>
+                        <li>Yêu cầu sẽ được Admin/Giảng viên <b>Duyệt</b>.</li>
+                        <li>Thông tin đăng nhập (MSSV & Pass) sẽ được gửi về <b>Email</b> của bạn sau khi duyệt.</li>
+                    </ul>
+                </div>
+                
+                <button type="submit" class="btn">Gửi yêu cầu</button>
+            </form>
+            
+            <div class="links">
+                <a href="/login">Quay lại đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

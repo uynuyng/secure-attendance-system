@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinh viên Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 10px; overflow: hidden; display: none; }
+        .scan-btn { background: #6c5ce7; color: white; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2><i class="fas fa-user-graduate"></i> SV: {{ session['name'] }}</h2>
+                <small>MSSV: {{ session['username'] }}</small>
+            </div>
+            <a href="/logout" class="btn btn-secondary">Đăng xuất</a>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card" style="margin-bottom: 30px; border: 2px solid #FF6B6B;">
+            <h3 style="text-align: center;">Điểm Danh Vào Lớp</h3>
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button class="btn scan-btn" onclick="startScanner()">
+                    <i class="fas fa-camera"></i> Quét QR
+                </button>
+                <div id="reader"></div> 
+                <p id="scan-status" style="font-size: 12px; color: green; display: none;">Đang quét...</p>
+            </div>
+
+            <div style="text-align: center; border-top: 1px dashed #ddd; padding-top: 20px;">
+                <p style="font-size: 13px; color: #666;">Hoặc nhập mã OTP thủ công:</p>
+                <form action="/submit_attendance" method="POST">
+                    <input type="text" name="otp_code" placeholder="Nhập 6 số OTP" 
+                           style="font-size:20px; text-align:center; width: 60%; letter-spacing: 5px; padding: 8px;" required>
+                    <button class="btn" style="width: 60%; margin-top: 10px;">Xác nhận</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-calendar-alt"></i> Thời Khóa Biểu Tuần Này</h3>
+            <div class="schedule-container">
+                <table class="schedule-table">
+                    <thead><tr><th style="width:50px;">Ca</th><th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th><th>Thứ 7</th><th>CN</th></tr></thead>
+                    <tbody>
+                        {% for sess in ['Sáng', 'Chiều', 'Tối'] %}
+                        <tr>
+                            <td class="session-col">{{ sess }}</td>
+                            {% for day in ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'] %}
+                            <td>
+                                {% for s in schedules %}
+                                    {% set day_index = s[0].isoweekday() %}
+                                    {% set day_name = 'Thứ ' ~ (day_index + 1) %}
+                                    {% if day_index == 7 %}{% set day_name = 'CN' %}{% endif %}
+                                    
+                                    {% if day_name == day %}
+                                        {% set gio = s[1].split(':')[0]|int %}
+                                        {% set buoi_hoc = 'Sáng' %}
+                                        {% if gio >= 12 %}{% set buoi_hoc = 'Chiều' %}{% endif %}
+                                        {% if gio >= 17 %}{% set buoi_hoc = 'Tối' %}{% endif %}
+
+                                        {% if buoi_hoc == sess %}
+                                        {% set bg_color = s[6] if s|length > 6 else '#e3f2fd' %}
+                                        <div class="class-block" style="background-color: {{ bg_color }};">
+                                            <strong>{{ s[4] }}</strong>
+                                            <div><i class="fas fa-clock"></i> {{ s[1] }} - {{ s[2] }}</div>
+                                            <div><i class="fas fa-map-marker-alt"></i> {{ s[3] }}</div>
+                                            <div style="font-style:italic; margin-top:3px; font-size:11px;">
+                                                GV: {{ s[5] }}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px; border-top: 5px solid #FF6B6B;">
+            <h3><i class="fas fa-history"></i> Lịch Sử Điểm Danh</h3>
+            <table class="exam-table">
+                <thead><tr><th>Môn Học</th><th>Ngày</th><th>Giờ Check-in</th><th>Cách thức</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                    {% for h in history %}
+                    <tr>
+                        <td style="font-weight:bold; color:#d84315;">{{ h[0] }}</td>
+                        <td>{{ h[4].strftime('%d/%m/%Y') }}</td>
+                        <td>{{ h[1].strftime('%H:%M:%S') }}</td>
+                        <td><span class="badge" style="background:#eee; color:#333">{{ h[2] }}</span></td>
+                        <td><span class="badge" style="background:#d4edda; color:green;"><i class="fas fa-check-circle"></i> {{ h[3] }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align:center;">Chưa có dữ liệu.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Chi tiết lớp học (Student View) -->
+    <div id="classDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalSubject" style="color: #FF6B6B; border-bottom: 2px solid #eee; margin-top:0;"></h2>
+            
+            <div style="margin-bottom: 15px; color: #555;">
+                <span style="margin-right: 15px;"><i class="fas fa-clock"></i> <b id="modalTime"></b></span>
+                <span style="margin-right: 15px;"><i class="fas fa-calendar-alt"></i> <b id="modalDate"></b></span>
+                <span><i class="fas fa-map-marker-alt"></i> <b id="modalRoom"></b></span>
+            </div>
+            
+            <h4><i class="fas fa-users"></i> Danh sách lớp:</h4>
+            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #eee;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead style="background: #333; color: #fff;">
+                        <tr><th>MSSV</th><th>Họ Tên</th><th>Trạng thái</th></tr>
+                    </thead>
+                    <tbody id="modalStudentList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // QR 
+        let html5QrcodeScanner;
+        function startScanner() {
+            const readerDiv = document.getElementById('reader');
+            if (readerDiv.style.display === 'block') {
+                if(html5QrcodeScanner) html5QrcodeScanner.clear();
+                readerDiv.style.display = 'none';
+                return;
+            }
+            readerDiv.style.display = 'block';
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} });
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+        function onScanSuccess(decodedText) {
+            html5QrcodeScanner.clear();
+            document.getElementById('reader').style.display = 'none';
+            if (decodedText.startsWith("http")) window.location.href = decodedText;
+            else window.location.href = "/student_attendance?code=" + decodedText;
+        }
+
+        function showStudentClassModal(scheduleId) {
+            var modal = document.getElementById("classDetailModal");
+            var tbody = document.getElementById("modalStudentList");
+            
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Đang tải...</td></tr>';
+            modal.style.display = "block";
+
+            fetch('/api/class_details/' + scheduleId)
+                .then(response => {
+                    if (!respone.ok) {
+                        throw new Error ('Network reponse was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        alert('Lỗi: ' + data.error);
+                        closeModal();
+                        return;
+                    }
+
+                    document.getElementById("modalSubject").innerText = data.subject;
+                    document.getElementById("modalTime").innerText = data.time;
+                    document.getElementById("modalDate").innerText = data.date;
+                    document.getElementById("modalRoom").innerText = data.room;
+
+                    tbody.innerHTML = "";
+                    if (data.students.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Lớp trống.</td></tr>';
+                    } else {
+                        data.students.forEach(s => {
+                            var isMe = (s.mssv === '{{ session["username"] }}');
+                            var bgStyle = isMe ? 'background-color: #fff3cd;' : '';
+                            
+                            var statusBadge = s.status === 'Co Mat' 
+                                ? '<span style="color:green">✓ Có mặt</span>' 
+                                : '<span style="color:#ccc">. . .</span>';
+
+                            var row = `<tr style="border-bottom: 1px solid #eee; ${bgStyle}">
+                                <td style="padding: 10px;">${s.mssv}</td>
+                                <td style="padding: 10px; font-weight: bold;">${s.ten}</td>
+                                <td style="padding: 10px;">${statusBadge}</td>
+                            </tr>`;
+                            tbody.innerHTML += row;
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    alert('Lỗi kết nối server! Vui lòng kiểm tra console.');
+                });
+            }
+        function closeModal() { 
+            document.getElementById("classDetailModal").style.display = "none"; 
+        }
+
+        window.onclick = function(e) { 
+            if (e.target == document.getElementById("classDetailModal")) closeModal(); 
+        }
+    </script>
+</body>
+</html>

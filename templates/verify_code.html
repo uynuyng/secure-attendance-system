@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><title>Nhập Mã Xác Nhận</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h3>Nhập Mã OTP</h3>
+            <p style="font-size: 13px; color: #666;">Mã đã được gửi đến email của bạn.</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}{% for cat, msg in messages %}<div class="alert alert-{{ cat }}">{{ msg }}</div>{% endfor %}{% endif %}
+            {% endwith %}
+            <form method="POST">
+                <input type="text" name="otp" placeholder="Nhập mã 4 số" required style="text-align: center; letter-spacing: 5px; font-weight: bold;">
+                <button type="submit" class="btn">Xác nhận</button>
+            </form>
+            <div class="links"><a href="/forgot_password">Gửi lại mã</a></div>
+        </div>
+    </div>
+</body></html>
